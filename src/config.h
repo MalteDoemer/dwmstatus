@@ -11,7 +11,7 @@
 static const char not_available[] = "n/a";
 
 /* the status line format string */ // 
-static const char status_line[] =  " %s |  %s%% |  %s%% | %s %s°C | %s %s%% | %s %s %s%% |  %s |  %s %s%% | %s";
+static const char status_line[] =  " %s |  %s%% |  %s%% | %s %s°C | %s %s%% | %s %s %s%% |  %s |  %s | %s";
 
 static const block_t blocks[] = {
     /* function             argument      interval   signal */
@@ -27,6 +27,5 @@ static const block_t blocks[] = {
     {  battery_perc,        "BAT0",       30,        0 },
     {  keyboard_layout,     NULL,         30,        SIG_KEYBOARD },
     {  wifi_essid,          "wlo1",       30,        SIG_WIFI },
-    {  wifi_perc,           "wlo1",       1,         0 },
     {  date,                "%F %T",      1,         0 },
 };
