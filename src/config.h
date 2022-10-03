@@ -10,8 +10,8 @@
 /* text to show if no value is available */
 static const char not_available[] = "n/a";
 
-/* the status line format string */ // 
-static const char status_line[] =  " %s |  %s%% |  %s%% | %s %s°C | %s %s%% | %s %s %s%% |  %s |  %s | %s";
+/* the status line format string */
+static const char status_line[] =  " %s |  %s%% |  %s%% | %s %s°C | %s %s%% | %s %s %s%% |  %s |  %s | %s";
 
 static const block_t blocks[] = {
     /* function             argument      interval   signal */
