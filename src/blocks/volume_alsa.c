@@ -10,7 +10,7 @@ typedef enum { ALSA_ON, ALSA_OFF } alsa_status_t;
 
 static result_t get_alsa_status(const char* mixer, alsa_status_t* status_out)
 {
-    const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][]' '{ print $6  }'";
+    const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][]' '{ print $4  }'";
     char command[COMMAND_SIZE];
 
     int n = snprintf(command, COMMAND_SIZE, command_fmt, mixer);
@@ -101,22 +101,15 @@ result_t volume_icon_alsa(const char* mixer, char* buffer, size_t buffer_size)
         icon = "";
     } else {
 
-        if (volume < 33) {
+        if (volume == 0) {
             icon = "";
-        } else if (volume < 66) {
+        } else if (volume < 33) {
             icon = "";
         } else {
             icon = "";
         }
 
     }
-
-    // 🔇  🔈  🔊 
-
-    //    
-    //   
-
-    //
 
     int n = snprintf(buffer, buffer_size, "%s", icon);
     return n < 0 ? RESULT_ERROR : RESULT_SUCCESS;
