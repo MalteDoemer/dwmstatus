@@ -43,8 +43,8 @@ options:
 dwmstatus: ${SOURCES} ${HEADERS} ${BLOCKS}
 	${CC} -o $@ ${SOURCES} ${BLOCKS} ${CFLAGS} ${LDFLAGS}
 
-config.h:
-	cp config.def.h $@
+src/config.h:
+	cp src/config.def.h $@
 
 clean:
 	rm -f *.o *.gch dwmstatus
