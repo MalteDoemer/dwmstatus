@@ -1,4 +1,7 @@
 
+/* uncomment the next line if colors should be used*/
+#define NO_COLORS
+
 #include "colors.h"
 
 /* text to show if no value is available */
