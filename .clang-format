@@ -1,0 +1,17 @@
+BasedOnStyle: WebKit
+
+ColumnLimit: 120
+SpaceInEmptyBlock: false
+
+AlignEscapedNewlines: Right
+AlignTrailingComments: true
+AlignAfterOpenBracket: BlockIndent
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "blocks.h": "c"
+    },
+    "C_Cpp.clang_format_style": "file"
+}
