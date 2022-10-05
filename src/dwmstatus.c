@@ -7,18 +7,14 @@
 #ifndef NO_X
 #include <X11/Xlib.h>
 #endif
-#ifdef __OpenBSD__
-#define SIGPLUS SIGUSR1 + 1
-#define SIGMINUS SIGUSR1 - 1
-#else
-#define SIGPLUS SIGRTMIN
-#define SIGMINUS SIGRTMIN
-#endif
 
 #define MAX_CMD_LENGTH 64
 
 /* the maximum length of the status line (probably too much) */
 #define STATUS_LENGTH (LENGTH(blocks) * MAX_CMD_LENGTH + LENGTH(status_line) + 1)
+
+/* a special char to tell dwm when a new block begins */
+#define BLOCK_SEPERATOR_CHAR '\x1f'
 
 #include "util.h"
 
@@ -34,9 +30,7 @@ typedef struct {
 #include "blocks.h"
 #include "config.h"
 
-#ifndef __OpenBSD__
 static void dummy_sig_handler(int num);
-#endif
 static void sig_handler(int signum);
 static void terminate_handler();
 static void setup_signals();
@@ -162,15 +156,13 @@ static int update_status_text()
 
 void setup_signals()
 {
-#ifndef __OpenBSD__
     /* initialize all real time signals with dummy handler */
     for (int i = SIGRTMIN; i <= SIGRTMAX; i++)
         signal(i, dummy_sig_handler);
-#endif
 
     for (size_t i = 0; i < LENGTH(blocks); i++)
         if (blocks[i].signal > 0)
-            signal(SIGMINUS + blocks[i].signal, sig_handler);
+            signal(SIGRTMIN + blocks[i].signal, sig_handler);
 }
 
 #ifndef NO_X
@@ -215,16 +207,14 @@ void status_loop()
     }
 }
 
-#ifndef __OpenBSD__
 void dummy_sig_handler(int signum)
 {
     return;
 }
-#endif
 
 void sig_handler(int signum)
 {
-    update_sig_blocks(signum - SIGPLUS);
+    update_sig_blocks(signum - SIGRTMIN);
     writestatus();
 }
 
