@@ -1,11 +1,11 @@
 
 #include "colors.h"
 
-
-#define SIG_VOLUME 3
-#define SIG_POWER_PROFILE 4
-#define SIG_KEYBOARD 5
-#define SIG_WIFI 6
+#define SIG_VOLUME 10
+#define SIG_BRIGHTNESS 11
+#define SIG_POWER_PROFILE 12
+#define SIG_KEYBOARD 13
+#define SIG_NETWORK 14
 
 /* text to show if no value is available */
 static const char not_available[] = "n/a";
@@ -26,6 +26,6 @@ static const block_t blocks[] = {
     {  battery_icon,        "BAT0",       30,        0 },
     {  battery_perc,        "BAT0",       30,        0 },
     {  keyboard_layout,     NULL,         30,        SIG_KEYBOARD },
-    {  wifi_essid,          "wlo1",       30,        SIG_WIFI },
+    {  wifi_essid,          "wlo1",       30,        SIG_NETWORK },
     {  date,                "%F %T",      1,         0 },
 };
