@@ -1,7 +1,3 @@
-
-/* uncomment the next line if colors should be used*/
-#define NO_COLORS
-
 #include "colors.h"
 
 /* the signal number with wich dwm uses for click events */
