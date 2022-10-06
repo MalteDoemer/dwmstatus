@@ -1,6 +1,10 @@
 {
     "files.associations": {
-        "blocks.h": "c"
+        "blocks.h": "c",
+        "colors.h": "c",
+        "signum-arch.h": "c",
+        "config.h": "c",
+        "util.h": "c"
     },
     "C_Cpp.clang_format_style": "file"
 }
