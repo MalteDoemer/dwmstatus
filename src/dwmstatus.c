@@ -8,21 +8,20 @@
 #include <X11/Xlib.h>
 #endif
 
-#define MAX_CMD_LENGTH 64
+/* the maximum length of the status line (should be the same as in dwm) */
+#define STATUS_LENGTH 512
 
-/* the maximum length of the status line (probably too much) */
-#define STATUS_LENGTH (LENGTH(blocks) * MAX_CMD_LENGTH + LENGTH(status_line) + 1)
-
-/* a special char to tell dwm when a new block begins */
-#define BLOCK_SEPERATOR_CHAR '\x1f'
+#define BLOCK_LENGTH STATUS_LENGTH / LENGTH(blocks)
 
 #include "util.h"
 
 typedef result_t (*block_fn_t)(const char* arg, char* buffer, size_t buffer_size);
 
 typedef struct {
+    const char* fmt;
     block_fn_t block_fn;
     const char* arg;
+    const char* on_click;
     size_t interval;
     int signal;
 } block_t;
@@ -30,8 +29,9 @@ typedef struct {
 #include "blocks.h"
 #include "config.h"
 
-static void dummy_sig_handler(int num);
 static void sig_handler(int signum);
+static void dummy_sig_handler(int num);
+static void click_sig_handler(int signum, siginfo_t *si, void *ucontext);
 static void terminate_handler();
 static void setup_signals();
 
@@ -57,12 +57,9 @@ static void (*writestatus)() = pstdout;
 #endif
 
 /* status text of every block */
-static char block_text[LENGTH(blocks)][MAX_CMD_LENGTH] = { 0 };
+static char block_text[LENGTH(blocks)][BLOCK_LENGTH] = { 0 };
 
-/*
-    - index 0: the current status line text
-    - index 1: the last status line text
-*/
+/* the current and last status lines */
 static char status_text[2][STATUS_LENGTH];
 
 static int running = 1;
@@ -70,10 +67,15 @@ static int running = 1;
 void update_block(size_t index)
 {
     const block_t* block = &blocks[index];
-    result_t res = block->block_fn(block->arg, block_text[index], MAX_CMD_LENGTH);
+    char* buffer = block_text[index];
+
+    if (!block->block_fn)
+        return;
+
+    result_t res = block->block_fn(block->arg, buffer, BLOCK_LENGTH);
 
     if (res == RESULT_ERROR)
-        snprintf(block_text[index], MAX_CMD_LENGTH, not_available);
+        snprintf(buffer, BLOCK_LENGTH, not_available);
 }
 
 void update_blocks(size_t time)
@@ -104,54 +106,31 @@ static int update_status_text()
     // replace the old status text
     strcpy(last, current);
 
-    // scan the status_line string and fill the current buffer
-    // Note: the length of the buffer is chosen so that it never overflows
+    size_t offset = 0;
 
-    const char* s = status_line; // pointer into the status_line
-    size_t pos = 0;              // index into the current buffer
-    size_t block_index = 0;      // index of the block to output
+    for (size_t i = 0; i < LENGTH(blocks); i++) {
+        int res;
+        const block_t* block = &blocks[i];
+        const char* text = block_text[i];
 
-    while (*s) {
-        const char* n = s + 1;
-
-        if (*s == '%' && *n == '%') // escaped double percent '%%'
-        {
-            current[pos++] = '%';
-            s += 2;
-        } else if (*s == '%' && *n == 's') // string place holder '%s'
-        {
-
-            if (block_index >= LENGTH(blocks))
-                die("dwmstatus: block index out of bounds at character %ld", s - status_line);
-
-            char* dest = current + pos;
-            char* src = block_text[block_index]; // src should be null terminated
-            size_t len = strlen(src);
-
-            assert(len < MAX_CMD_LENGTH);
-
-            strcpy(dest, src);
-
-            pos += len;
-            block_index += 1;
-            s += 2;
-        } else if (*s == '%') // error '%d' or '%1'
-        {
-            die("dwmstatus: malformed format string at character %ld", s - status_line);
-        } else // literal character
-        {
-            current[pos++] = *s;
-            s += 1;
+        res = snprintf(current + offset, STATUS_LENGTH - offset, block->fmt, text);
+        if (res < 0) {
+            warn("snprintf:");
+            continue;
         }
+
+        offset += (size_t)res;
+
+        res = snprintf(current + offset, STATUS_LENGTH - offset, "%c", block_seperator);
+        if (res < 0) {
+            warn("snprintf:");
+            continue;
+        }
+
+        offset += (size_t)res;
     }
 
-    // STATUS_LENGTH should be defined so that we never overflow it
-    assert(pos < STATUS_LENGTH);
-
-    // null-termination
-    current[pos] = '\0';
-
-    return strcmp(current, last); // return 0 if they are same
+    return strcmp(current, last); // return 0 if nothing changed
 }
 
 void setup_signals()
@@ -163,6 +142,9 @@ void setup_signals()
     for (size_t i = 0; i < LENGTH(blocks); i++)
         if (blocks[i].signal > 0)
             signal(SIGRTMIN + blocks[i].signal, sig_handler);
+
+    struct sigaction sa = { .sa_sigaction = click_sig_handler, .sa_flags = SA_SIGINFO };
+    sigaction(SIGRTMIN+SIG_CLICK, &sa, NULL);
 }
 
 #ifndef NO_X
@@ -207,15 +189,31 @@ void status_loop()
     }
 }
 
+void sig_handler(int signum)
+{
+    update_sig_blocks(signum - SIGRTMIN);
+    writestatus();
+}
+
 void dummy_sig_handler(int signum)
 {
     return;
 }
 
-void sig_handler(int signum)
+void click_sig_handler(int signum, siginfo_t *info, void *ucontext) 
 {
-    update_sig_blocks(signum - SIGRTMIN);
-    writestatus();
+    int index = info->si_value.sival_int;
+    const char* cmd = blocks[index].on_click;
+
+    if (!cmd) 
+        return;
+
+    FILE* p = popen(cmd, "r");
+
+    if (!p)
+        return;
+
+    pclose(p);
 }
 
 void terminate_handler()
