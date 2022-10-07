@@ -10,7 +10,8 @@ typedef enum { ALSA_ON, ALSA_OFF } alsa_status_t;
 
 static result_t get_alsa_status(const char* mixer, alsa_status_t* status_out)
 {
-    const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][]' '{ print $4  }'";
+    // const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][]' '{ print $4  }'";
+    const char* command_fmt = "amixer get Master | tail -n1  | sed -En 's/.*\\[(.*)\\].*/\\1/p'";
     char command[COMMAND_SIZE];
 
     int n = snprintf(command, COMMAND_SIZE, command_fmt, mixer);
@@ -43,7 +44,8 @@ static result_t get_alsa_status(const char* mixer, alsa_status_t* status_out)
 
 static result_t get_alsa_volume(const char* mixer, int* volume_out)
 {
-    const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][%%]' '{ print $2  }'";
+    // const char* command_fmt = "amixer get %s | tail -n1  | awk -F '[][%%]' '{ print $2  }'";
+    const char* command_fmt = "amixer get Master | tail -n1  | sed -En 's/.*\\[(.*)%%\\].*/\\1/p'";
     char command[COMMAND_SIZE];
 
     int n = snprintf(command, COMMAND_SIZE, command_fmt, mixer);

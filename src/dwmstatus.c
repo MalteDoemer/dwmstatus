@@ -31,7 +31,7 @@ typedef struct {
 
 static void sig_handler(int signum);
 static void dummy_sig_handler(int num);
-static void click_sig_handler(int signum, siginfo_t *si, void *ucontext);
+static void click_sig_handler(int signum, siginfo_t* si, void* ucontext);
 static void terminate_handler();
 static void setup_signals();
 
@@ -144,7 +144,7 @@ void setup_signals()
             signal(SIGRTMIN + blocks[i].signal, sig_handler);
 
     struct sigaction sa = { .sa_sigaction = click_sig_handler, .sa_flags = SA_SIGINFO };
-    sigaction(SIGRTMIN+SIG_CLICK, &sa, NULL);
+    sigaction(SIGRTMIN + SIG_CLICK, &sa, NULL);
 }
 
 #ifndef NO_X
@@ -200,12 +200,12 @@ void dummy_sig_handler(int signum)
     return;
 }
 
-void click_sig_handler(int signum, siginfo_t *info, void *ucontext) 
+void click_sig_handler(int signum, siginfo_t* info, void* ucontext)
 {
     int index = info->si_value.sival_int;
     const char* cmd = blocks[index].on_click;
 
-    if (!cmd) 
+    if (!cmd)
         return;
 
     FILE* p = popen(cmd, "r");
