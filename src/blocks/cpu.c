@@ -24,7 +24,7 @@ typedef struct {
 
 } cpu_stat_t;
 
-int cpu_stat(cpu_stat_t* cpu_stat)
+result_t cpu_stat(cpu_stat_t* cpu_stat)
 {
     int res = pscanf(
         "/proc/stat", "%*s %ju %ju %ju %ju %ju %ju %ju", &cpu_stat->user, &cpu_stat->nice, &cpu_stat->system,
@@ -32,32 +32,33 @@ int cpu_stat(cpu_stat_t* cpu_stat)
     );
 
     if (res != 7)
-        return -1;
+        return RESULT_ERROR;
 
-    return 0;
+    return RESULT_SUCCESS;
 }
 
-int cpu_perc(const char* unused, char* bufer, size_t buffer_size)
+result_t cpu_perc(const char* unused, char* bufer, size_t buffer_size)
 {
     static cpu_stat_t a = { 0 };
     cpu_stat_t b;
 
     memcpy(&b, &a, sizeof(cpu_stat_t));
 
-    int res = cpu_stat(&a);
+    result_t res = cpu_stat(&a);
 
-    if (res < 0)
-        return -1;
+    if (res == RESULT_ERROR)
+        return RESULT_ERROR;
 
     if (b.user == 0) // this should only be zero the first time this function is called
-        return -1;
+        return RESULT_ERROR;
 
     long double total = (long double)TOTAL(a) - (long double)TOTAL(b);
 
     if (total == 0)
-        return -1;
+        return RESULT_ERROR;
 
     long double load = (long double)LOAD(a) - (long double)LOAD(b);
 
-    return snprintf(bufer, buffer_size, "%02d", (int)(100 * load / total));
+    int n = snprintf(bufer, buffer_size, "%02d", (int)(100 * load / total));
+    return n < 0 ? RESULT_ERROR : RESULT_SUCCESS;
 }
